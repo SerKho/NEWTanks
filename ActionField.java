@@ -14,6 +14,9 @@ import Tanks.tankobjects.Tiger;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.security.cert.Extension;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
@@ -29,23 +32,162 @@ public class ActionField extends JPanel {
     private Bullet bullet;
     private final String[] MOVE = { "Illegal move", "Move UP", "Move DOWN", "Move LEFT", "Move RIGHT" };
     private int step=1;
+    private boolean gameOver = false;
 
-    public ActionField()throws Exception {
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public Bullet getBullet() {
+        return bullet;
+    }
+
+    public void setBullet(Bullet bullet) {
+        this.bullet = bullet;
+    }
+
+    public boolean isCOLORDED_MODE() {
+        return COLORDED_MODE;
+    }
+
+    public void setBattleField(BattleField battleField) {
+        this.battleField = battleField;
+    }
+
+    public AbstractTank getDefender() {
+        return defender;
+    }
+
+    public void setDefender(AbstractTank defender) {
+        this.defender = defender;
+    }
+
+    public AbstractTank getAgressor() {
+        return agressor;
+    }
+
+    public void setAgressor(AbstractTank agressor) {
+        this.agressor = agressor;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
+    }
+
+    public ActionField(AbstractTank at) throws Exception {
         battleField = new BattleField(this);
         defender = new T34(battleField);
-        agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+//        agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
         bullet = new Bullet(-100, -100, Direction.UP, this.defender);
+        if(at instanceof BT7){
+            agressor = new BT7(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+//            agressor = new BT7(battleField, 128,512, Direction.DOWN);
+        }
 
-        JFrame frame = new JFrame("BATTLE FIELD, DAY 2");
-        frame.setLocation(400, 100);
-        frame.setMinimumSize(new Dimension(battleField.getBF_WIDTH() + 16, battleField.getBF_HEIGHT() + 39));
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.getContentPane().add(this);
-        frame.pack();
-        frame.setVisible(true);
+
+        if(at instanceof Tiger){
+            agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+        }
+        this.setGameOver(false);
+        this.setSize(576 + 16,576 + 39);
+        this.setLayout(null);
+        this.setLocation(0,0);
+//        JFrame frame = new JFrame("BATTLE FIELD");
+//        frame.setLocation(400, 50);
+
+
+//        JMenuBar menuBar = new JMenuBar();
+//        JMenu menu = new JMenu("Menu");
+//        menuBar.add(menu);
+//        frame.setJMenuBar(menuBar);
+//        JMenu menuItem = new JMenu("Set agressor");
+//        JMenuItem menuItem1 = new JRadioButtonMenuItem("BT7");
+//        JMenuItem menuItem2 = new JRadioButtonMenuItem("Tiger");
+//        JMenuItem menuItem3 = new JMenuItem("Run new game");
+//        ButtonGroup bg = new ButtonGroup();
+//        bg.add(menuItem1);
+//        bg.add(menuItem2);
+//        menuItem1.setSelected(true);
+//        menuItem.add(menuItem1);
+//        menuItem.add(menuItem2);
+//        menu.add(menuItem);
+//        menu.add(menuItem3);
+//        menuItem1.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                agressor = new BT7(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+//                repaint();
+//            }
+//        });
+//        menuItem2.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+//                repaint();
+//            }
+//        });
+//        frame.setMinimumSize(new Dimension(battleField.getBF_WIDTH() + 16, battleField.getBF_HEIGHT() + 39));
+//        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+//        frame.getContentPane().add(this);
+//        frame.pack();
+//        frame.setVisible(true);
+//        runTheGame();
+//        this.removeAll();
+//        JButton button1 = new JButton("Play again");
+//        button1.setSize(100,30);
+//        button1.setLocation(230,300);
+//        JButton button2 = new JButton("Exit");
+//        button2.setSize(100,30);
+//        button2.setLocation(230,340);
+//        button1.setBackground(Color.GREEN);
+//        button2.setBackground(Color.GREEN);
+//        this.setLayout(null);
+//        button1.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                try {
+//
+//                    frame.dispose();
+//                    frame.getContentPane().add(new ActionField(getAgressor()));
+//                    frame.pack();
+//                    frame.setVisible(true);
+//                } catch (Exception e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//        });
+//        button2.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                System.exit(0);
+//            }
+//        });
+//        this.add(button1);
+//        this.add(button2);
+//        this.revalidate();
+//        this.updateUI();
     }
 
     public void runTheGame() throws Exception {
+        Thread.sleep(1000);
+        if(agressor instanceof Tiger){
+            runTheGameTiger();
+        }
+        else {
+            runTheGameBT7();
+
+        }
+    }
+
+    public void runTheGameTiger() throws Exception {
         Thread.sleep(1000);
         while(true){
             if(this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed()==false) {
@@ -70,6 +212,29 @@ public class ActionField extends JPanel {
         }
     }
 
+    public void runTheGameBT7() throws Exception {
+        Thread.sleep(1000);
+        int i=0;
+        while(i==0){
+            if(this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed()==false) {
+                agressor.setPath(agressor.eagleDestroyAlgoritm1());
+                Iterator<Action> b = agressor.getPath().iterator();
+                while (b.hasNext()){
+                    if(!(this.getBattleField().getBattleField()[8][4] instanceof Eagle)){
+                        i = 1;
+                    }
+                    agressor.setAction(b.next());
+                    tankAction(agressor);
+                    defender.setAction(AbstractTank.randomAction());
+                    tankAction(defender);
+                }
+            }
+            else {
+           i = 1;
+            }
+        }
+    }
+
 
 
     private boolean processInterception() {
@@ -84,7 +249,7 @@ public class ActionField extends JPanel {
                 return true;
             } else if ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)) instanceof Rock) &&
             ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)).getX()>0))) {
-                ((Rock) battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2))).destroy();
+////                ((Rock) battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2))).destroy();
                 return true;
             } else if ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)) instanceof Eagle) &&
             ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)).getX()>0))) {
@@ -124,34 +289,45 @@ public class ActionField extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        int i = 0;
-        Color cc;
-        for (int v = 0; v < 9; v++) {
-            for (int h = 0; h < 9; h++) {
-                if (COLORDED_MODE) {
-                    if (i % 2 == 0) {
-                        cc = new Color(252, 241, 177);
+//        if(this.isGameOver()==false) {
+
+            int i = 0;
+            Color cc;
+            for (int v = 0; v < 9; v++) {
+                for (int h = 0; h < 9; h++) {
+                    if (COLORDED_MODE) {
+                        if (i % 2 == 0) {
+                            cc = new Color(252, 241, 177);
+                        } else {
+                            cc = new Color(233, 243, 255);
+                        }
                     } else {
-                        cc = new Color(233, 243, 255);
+                        cc = new Color(180, 180, 180);
                     }
-                } else {
-                    cc = new Color(180, 180, 180);
+                    i++;
+                    g.setColor(cc);
+                    g.fillRect(h * 64, v * 64, 64, 64);
                 }
-                i++;
-                g.setColor(cc);
-                g.fillRect(h * 64, v * 64, 64, 64);
             }
-        }
 
-        for (int j = 0; j < battleField.getDimensionY(); j++) {
-            for (int k = 0; k < battleField.getDimensionY(); k++) {
-                battleField.scanBattleField(j, k).draw(g);
+            for (int j = 0; j < battleField.getDimensionY(); j++) {
+                for (int k = 0; k < battleField.getDimensionY(); k++) {
+                    battleField.scanBattleField(j, k).draw(g);
+                }
             }
-        }
 
-        agressor.draw(g);
-        defender.draw(g);
-        bullet.draw(g);
+            agressor.draw(g);
+            defender.draw(g);
+            bullet.draw(g);
+//        }
+//        else{
+//            g.setColor(Color.BLACK);
+//            g.fillRect(0,0,800,600);
+//            g.setColor(Color.RED);
+//            g.setFont(new Font("Garamond", Font.BOLD, 60));
+//            g.drawString("GAME OVER", 100, 200);
+//
+//        }
     }
 
     public void processTurn(AbstractTank defender, Direction direction) throws Exception {
@@ -261,4 +437,6 @@ public class ActionField extends JPanel {
         }
         else{}
     }
+
+
 }

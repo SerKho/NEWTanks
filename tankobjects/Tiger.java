@@ -28,6 +28,7 @@ public class Tiger extends AbstractTank {
         super(bf);
     }
 
+
     public int getArmor() {
         return armor;
     }

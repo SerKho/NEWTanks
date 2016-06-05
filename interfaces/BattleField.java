@@ -70,6 +70,9 @@ public class BattleField {
         battleField[4][6] = new Rock(af, 5,7);
 
     }
+    public BattleField(){
+
+    }
 
     public BFObject[][] getBattleField() {
         return battleField;
