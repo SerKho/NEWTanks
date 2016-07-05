@@ -13,6 +13,9 @@ import Tanks.interfaces.Destroyable;
 import Tanks.interfaces.Drawable;
 
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 /**
@@ -33,6 +36,25 @@ public abstract class AbstractTank implements Drawable, Destroyable {
 
     private BattleField bf;
     private Action action;
+    private String tankName;
+    private File file;
+
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public String getTankName() {
+        return tankName;
+    }
+
+    public void setTankName(String tankName) {
+        this.tankName = tankName;
+    }
 
     public boolean isDestroyed() {
         return isDestroyed;
@@ -95,16 +117,27 @@ public abstract class AbstractTank implements Drawable, Destroyable {
     }
 
 
-    AbstractTank(BattleField bf){
-        this(bf,384,512, Direction.UP);
+    AbstractTank(BattleField bf, String tankName, File file){
+
+        this(bf,384,512, Direction.UP, tankName, file);
+
     }
 
-    AbstractTank(BattleField bf, int x, int y, Direction direction) {
+    AbstractTank(BattleField bf, int x, int y, Direction direction, String tankName, File file) {
         this.bf = bf;
         this.x = x;
         this.y = y;
         this.direction = direction;
         this.setDestroyed(false);
+        this.tankName = tankName;
+        this.file = file;
+        try {
+            Files.createDirectory(file.toPath());
+            Files.createFile(new File(file.getPath() + File.separator + file.getName()+".txt").toPath());
+            this.file = new File(file.getPath() + File.separator + file.getName()+".txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 //        this.setPath();
     }
 
