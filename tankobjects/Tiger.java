@@ -19,13 +19,13 @@ public class Tiger extends AbstractTank {
     private Image iTiger;
     private int armor = 1;
 
-    public Tiger(BattleField bf, int x, int y, Direction direction){
-        super(bf, x, y, direction);
+    public Tiger(BattleField bf, int x, int y, Direction direction, String tankName, File file){
+        super(bf, x, y, direction, tankName, file);
 //        this.setPath();
     }
 
-    public Tiger(BattleField bf){
-        super(bf);
+    public Tiger(BattleField bf, String tankName, File file){
+        super(bf, tankName, file);
     }
 
 
