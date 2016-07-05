@@ -16,7 +16,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.security.cert.Extension;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
@@ -30,9 +36,19 @@ public class ActionField extends JPanel {
     private AbstractTank defender;
     private AbstractTank agressor;
     private Bullet bullet;
-    private final String[] MOVE = { "Illegal move", "Move UP", "Move DOWN", "Move LEFT", "Move RIGHT" };
-    private int step=1;
+    private final String[] MOVE = {"Illegal move", "Move UP", "Move DOWN", "Move LEFT", "Move RIGHT"};
+    private int step = 1;
     private boolean gameOver = false;
+    private File file;
+    private int tankNumber = 0;
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
 
     public boolean isGameOver() {
         return gameOver;
@@ -82,24 +98,42 @@ public class ActionField extends JPanel {
         this.step = step;
     }
 
-    public ActionField(AbstractTank at) throws Exception {
+    public ActionField(int at) throws Exception {
+        File[] roots = File.listRoots();
+        String separator = File.separator;
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE_MMM_d_hh_mm_ss");
+        Date currentTime_1 = new Date();
+        String dateString = formatter.format(currentTime_1);
+        file = new File(roots[0].getPath() + separator + "Tanks");
+        if (Files.isDirectory(file.toPath())) {
+            Files.createDirectory(new File(file.getAbsolutePath() + separator + dateString).toPath());
+            file = new File(file.getAbsolutePath() + separator + dateString);
+        } else {
+            Files.createDirectory(file.toPath());
+            Files.createDirectory(new File(file.getAbsolutePath() + separator + dateString).toPath());
+            file = new File(file.getAbsolutePath() + separator + dateString);
+        }
+
+
         battleField = new BattleField(this);
-        defender = new T34(battleField);
+        defender = new T34(battleField, "Tank" + (++tankNumber), new File(file.getAbsolutePath() + separator + "Tank" + tankNumber));
 //        agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
         bullet = new Bullet(-100, -100, Direction.UP, this.defender);
-        if(at instanceof BT7){
-            agressor = new BT7(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+        if (at > 0) {
+            agressor = new BT7(battleField, AbstractTank.POSITION[(int) (Math.random() * 3)], 0, Direction.DOWN,
+                    "Tank" + (++tankNumber), new File(file.getAbsolutePath() + separator + "Tank" + tankNumber));
 //            agressor = new BT7(battleField, 128,512, Direction.DOWN);
         }
 
 
-        if(at instanceof Tiger){
-            agressor = new Tiger(battleField, AbstractTank.POSITION[(int)(Math.random()*3)],0, Direction.DOWN);
+        if (at < 0) {
+            agressor = new Tiger(battleField, AbstractTank.POSITION[(int) (Math.random() * 3)], 0, Direction.DOWN,
+                    "Tank" + (++tankNumber), new File(file.getAbsolutePath() + separator + "Tank" + tankNumber));
         }
         this.setGameOver(false);
-        this.setSize(576 + 16,576 + 39);
+        this.setSize(576 + 16, 576 + 39);
         this.setLayout(null);
-        this.setLocation(0,0);
+        this.setLocation(0, 0);
 //        JFrame frame = new JFrame("BATTLE FIELD");
 //        frame.setLocation(400, 50);
 
@@ -178,10 +212,9 @@ public class ActionField extends JPanel {
 
     public void runTheGame() throws Exception {
         Thread.sleep(1000);
-        if(agressor instanceof Tiger){
+        if (agressor instanceof Tiger) {
             runTheGameTiger();
-        }
-        else {
+        } else {
             runTheGameBT7();
 
         }
@@ -189,24 +222,23 @@ public class ActionField extends JPanel {
 
     public void runTheGameTiger() throws Exception {
         Thread.sleep(1000);
-        while(true){
-            if(this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed()==false) {
-                agressor.setPath(agressor.defenderDestroyAlgoritm(defender.getX()/64, defender.getY()/64));
+        while (true) {
+            if (this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed() == false) {
+                agressor.setPath(agressor.defenderDestroyAlgoritm(defender.getX() / 64, defender.getY() / 64));
                 Iterator<Action> b = agressor.getPath().iterator();
-                while (b.hasNext()){
-                    if(defender.isDestroyed()==true){
+                while (b.hasNext()) {
+                    if (defender.isDestroyed() == true) {
                         break;
                     }
                     agressor.setAction(b.next());
                     tankAction(agressor);
-                    if(defender.isDestroyed()==true){
+                    if (defender.isDestroyed() == true) {
                         break;
                     }
                     defender.setAction(AbstractTank.randomAction());
                     tankAction(defender);
                 }
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -214,13 +246,13 @@ public class ActionField extends JPanel {
 
     public void runTheGameBT7() throws Exception {
         Thread.sleep(1000);
-        int i=0;
-        while(i==0){
-            if(this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed()==false) {
+        int i = 0;
+        while (i == 0) {
+            if (this.getBattleField().getBattleField()[8][4] instanceof Eagle && defender.isDestroyed() == false) {
                 agressor.setPath(agressor.eagleDestroyAlgoritm1());
                 Iterator<Action> b = agressor.getPath().iterator();
-                while (b.hasNext()){
-                    if(!(this.getBattleField().getBattleField()[8][4] instanceof Eagle)){
+                while (b.hasNext()) {
+                    if (!(this.getBattleField().getBattleField()[8][4] instanceof Eagle)) {
                         i = 1;
                     }
                     agressor.setAction(b.next());
@@ -228,13 +260,11 @@ public class ActionField extends JPanel {
                     defender.setAction(AbstractTank.randomAction());
                     tankAction(defender);
                 }
-            }
-            else {
-           i = 1;
+            } else {
+                i = 1;
             }
         }
     }
-
 
 
     private boolean processInterception() {
@@ -242,33 +272,32 @@ public class ActionField extends JPanel {
             if (getQuadrant(bullet.getAbstractTank().getX(), bullet.getAbstractTank().getY()).equals
                     (getQuadrant(bullet.getX(), bullet.getY()))) {
                 return false;
-            } else if (battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)) instanceof Brick){
-                ((Brick) battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2))).destroy();
-                this.battleField.updateQuadrant(bulletQuadrant(0),bulletQuadrant(2),
-                        new BFObject(this,bulletQuadrant(0)+1,bulletQuadrant(2)+1));
+            } else if (battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2)) instanceof Brick) {
+                ((Brick) battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2))).destroy();
+                this.battleField.updateQuadrant(bulletQuadrant(0), bulletQuadrant(2),
+                        new BFObject(this, bulletQuadrant(0) + 1, bulletQuadrant(2) + 1));
                 return true;
-            } else if ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)) instanceof Rock) &&
-            ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)).getX()>0))) {
+            } else if ((battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2)) instanceof Rock) &&
+                    ((battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2)).getX() > 0))) {
 ////                ((Rock) battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2))).destroy();
                 return true;
-            } else if ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)) instanceof Eagle) &&
-            ((battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2)).getX()>0))) {
-                ((Eagle) battleField.scanBattleField(bulletQuadrant(0),bulletQuadrant(2))).destroy();
-                this.battleField.updateQuadrant(bulletQuadrant(0),bulletQuadrant(2),
-                        new BFObject(this,bulletQuadrant(0)+1,bulletQuadrant(2)+1));
+            } else if ((battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2)) instanceof Eagle) &&
+                    ((battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2)).getX() > 0))) {
+                ((Eagle) battleField.scanBattleField(bulletQuadrant(0), bulletQuadrant(2))).destroy();
+                this.battleField.updateQuadrant(bulletQuadrant(0), bulletQuadrant(2),
+                        new BFObject(this, bulletQuadrant(0) + 1, bulletQuadrant(2) + 1));
                 return true;
 
             } else if (getQuadrant(agressor.getX(), agressor.getY()).equals(getQuadrant(bullet.getX(), bullet.getY()))) {
                 agressor.destroy();
                 return true;
-            }
-            else if (getQuadrant(defender.getX(), defender.getY()).equals(getQuadrant(bullet.getX(), bullet.getY()))) {
+            } else if (getQuadrant(defender.getX(), defender.getY()).equals(getQuadrant(bullet.getX(), bullet.getY()))) {
                 defender.destroy();
                 return true;
             } else {
                 return false;
             }
-        }else{
+        } else {
             return false;
         }
     }
@@ -291,34 +320,34 @@ public class ActionField extends JPanel {
 
 //        if(this.isGameOver()==false) {
 
-            int i = 0;
-            Color cc;
-            for (int v = 0; v < 9; v++) {
-                for (int h = 0; h < 9; h++) {
-                    if (COLORDED_MODE) {
-                        if (i % 2 == 0) {
-                            cc = new Color(252, 241, 177);
-                        } else {
-                            cc = new Color(233, 243, 255);
-                        }
-                    } else {
-                        cc = new Color(180, 180, 180);
-                    }
-                    i++;
-                    g.setColor(cc);
-                    g.fillRect(h * 64, v * 64, 64, 64);
-                }
-            }
+//            int i = 0;
+//            Color cc;
+//            for (int v = 0; v < 9; v++) {
+//                for (int h = 0; h < 9; h++) {
+//                    if (COLORDED_MODE) {
+//                        if (i % 2 == 0) {
+//                            cc = new Color(252, 241, 177);
+//                        } else {
+//                            cc = new Color(233, 243, 255);
+//                        }
+//                    } else {
+//                        cc = new Color(180, 180, 180);
+//                    }
+//                    i++;
+//                    g.setColor(cc);
+//                    g.fillRect(h * 64, v * 64, 64, 64);
+//                }
+//            }
 
-            for (int j = 0; j < battleField.getDimensionY(); j++) {
-                for (int k = 0; k < battleField.getDimensionY(); k++) {
-                    battleField.scanBattleField(j, k).draw(g);
-                }
+        for (int j = 0; j < battleField.getDimensionY(); j++) {
+            for (int k = 0; k < battleField.getDimensionY(); k++) {
+                battleField.scanBattleField(j, k).draw(g);
             }
+        }
 
-            agressor.draw(g);
-            defender.draw(g);
-            bullet.draw(g);
+        agressor.draw(g);
+        defender.draw(g);
+        bullet.draw(g);
 //        }
 //        else{
 //            g.setColor(Color.BLACK);
@@ -330,38 +359,39 @@ public class ActionField extends JPanel {
 //        }
     }
 
-    public void processTurn(AbstractTank defender, Direction direction) throws Exception {
-        defender.setDirection(direction);
+    public void processTurn(AbstractTank tank, Direction direction) throws Exception {
+        tank.setDirection(direction);
+        writeActionToFile(tank, "Turn"+direction.toString());
         System.out.println("Turn " + direction);
         repaint();
     }
 
-    public void processMove(AbstractTank defender) throws Exception {
-        if(movePossibility(defender, defender.getDirection().getDirection())==0){
-            System.out.println("TankX=" + defender.getX() + "; TankY=" + defender.getY() + "." + MOVE[0]);
+    public void processMove(AbstractTank tank) throws Exception {
+        if (movePossibility(tank, tank.getDirection().getDirection()) == 0) {
+            System.out.println("TankX=" + tank.getX() + "; TankY=" + tank.getY() + "." + MOVE[0]);
             return;
-        }else {
+        } else {
             int covered = 0;
             while (covered < 64) {
-                defender.updateX(vertOrHor(defender.getDirection().getDirection()) * positivOrNegativ(defender.getDirection().getDirection()) * step);
-                defender.updateY((1 - vertOrHor(defender.getDirection().getDirection())) * positivOrNegativ(defender.getDirection().getDirection()) * step);
-                System.out.println("TankX=" + defender.getX() + "; TankY=" + defender.getY() + "." + MOVE[defender.getDirection().getDirection()]);
+                tank.updateX(vertOrHor(tank.getDirection().getDirection()) * positivOrNegativ(tank.getDirection().getDirection()) * step);
+                tank.updateY((1 - vertOrHor(tank.getDirection().getDirection())) * positivOrNegativ(tank.getDirection().getDirection()) * step);
+                System.out.println("TankX=" + tank.getX() + "; TankY=" + tank.getY() + "." + MOVE[tank.getDirection().getDirection()]);
                 covered += step;
                 repaint();
-                Thread.sleep(defender.getSpeed());
+                Thread.sleep(tank.getSpeed());
             }
+            writeActionToFile(tank, MOVE[tank.getDirection().getDirection()]);
         }
 
     }
 
-    private int movePossibility(AbstractTank defender, int direction) {
-        if ((direction < 1 || direction > 4) || (direction == 1 && defender.getY() == 0) || (direction == 2 && defender.getY() == 512)
-                || (direction == 3 && defender.getX() == 0) || (direction == 4 && defender.getX() == 512) ||
-        (direction == 1 && !(battleField.scanBattleField((defender.getY()-1)/64, (defender.getX())/64).isCrossable())) ||
-        (direction == 2 && !(battleField.scanBattleField((defender.getY()+64)/64, defender.getX()/64).isCrossable())) ||
-        (direction == 3 && !(battleField.scanBattleField((defender.getY())/64, (defender.getX()-1)/64).isCrossable())) ||
-        (direction == 4 && !(battleField.scanBattleField(defender.getY()/64, (defender.getX()+64)/64).isCrossable())))
-        {
+    private int movePossibility(AbstractTank tank, int direction) {
+        if ((direction < 1 || direction > 4) || (direction == 1 && tank.getY() == 0) || (direction == 2 && tank.getY() == 512)
+                || (direction == 3 && tank.getX() == 0) || (direction == 4 && tank.getX() == 512) ||
+                (direction == 1 && !(battleField.scanBattleField((tank.getY() - 1) / 64, (tank.getX()) / 64).isCrossable())) ||
+                (direction == 2 && !(battleField.scanBattleField((tank.getY() + 64) / 64, tank.getX() / 64).isCrossable())) ||
+                (direction == 3 && !(battleField.scanBattleField((tank.getY()) / 64, (tank.getX() - 1) / 64).isCrossable())) ||
+                (direction == 4 && !(battleField.scanBattleField(tank.getY() / 64, (tank.getX() + 64) / 64).isCrossable()))) {
             return 0;
         } else {
             return 1;
@@ -369,7 +399,7 @@ public class ActionField extends JPanel {
     }
 
     public void processFire(AbstractTank tank) throws Exception {
-        this.bullet = new Bullet(tank.getX()+25, tank.getY()+25, tank.getDirection(), tank);
+        this.bullet = new Bullet(tank.getX() + 25, tank.getY() + 25, tank.getDirection(), tank);
         while (bullet.getY() >= 0 && bullet.getY() <= 576 && bullet.getX() >= 0 && bullet.getX() <= 576) {
             bullet.updateX(vertOrHor(tank.getDirection().getDirection()) * positivOrNegativ(tank.getDirection().getDirection()) * bullet.getSpeed());
             bullet.updateY((1 - vertOrHor(tank.getDirection().getDirection())) * positivOrNegativ(tank.getDirection().getDirection()) * bullet.getSpeed());
@@ -379,11 +409,12 @@ public class ActionField extends JPanel {
             repaint();
             Thread.sleep(tank.getSpeed());
         }
+        writeActionToFile(tank, "FIRE");
         bullet.destroy();
         repaint();
     }
 
-   private int vertOrHor(int direction) {
+    private int vertOrHor(int direction) {
         if (direction < 3) {
             return 0;
         } else {
@@ -391,7 +422,7 @@ public class ActionField extends JPanel {
         }
     }
 
-   private int positivOrNegativ(int direction) {
+    private int positivOrNegativ(int direction) {
         if (direction == 2 || direction == 4) {
             return 1;
         } else {
@@ -403,39 +434,40 @@ public class ActionField extends JPanel {
         return battleField;
     }
 
-    public void tankAction(AbstractTank tank)throws Exception{
-        if(tank.setUp().equals(Action.MOVE_UP)){
+    public void tankAction(AbstractTank tank) throws Exception {
+        if (tank.setUp().equals(Action.MOVE_UP)) {
             this.processTurn(tank, Direction.UP);
             this.processMove(tank);
-        }
-        else if(tank.setUp().equals(Action.MOVE_DOWN)){
+        } else if (tank.setUp().equals(Action.MOVE_DOWN)) {
             this.processTurn(tank, Direction.DOWN);
             this.processMove(tank);
-        }
-        else if(tank.setUp().equals(Action.MOVE_LEFT)){
+        } else if (tank.setUp().equals(Action.MOVE_LEFT)) {
             this.processTurn(tank, Direction.LEFT);
             this.processMove(tank);
-        }
-        else if(tank.setUp().equals(Action.MOVE_RIGHT)){
+        } else if (tank.setUp().equals(Action.MOVE_RIGHT)) {
             this.processTurn(tank, Direction.RIGHT);
             this.processMove(tank);
-        }
-        else if(tank.setUp().equals(Action.TURN_UP)){
+        } else if (tank.setUp().equals(Action.TURN_UP)) {
             this.processTurn(tank, Direction.UP);
-        }
-        else if(tank.setUp().equals(Action.TURN_DOWN)){
+        } else if (tank.setUp().equals(Action.TURN_DOWN)) {
             this.processTurn(tank, Direction.DOWN);
-        }
-        else if(tank.setUp().equals(Action.TURN_LEFT)){
+        } else if (tank.setUp().equals(Action.TURN_LEFT)) {
             this.processTurn(tank, Direction.LEFT);
-        }
-        else if(tank.setUp().equals(Action.TURN_RIGHT)){
+        } else if (tank.setUp().equals(Action.TURN_RIGHT)) {
             this.processTurn(tank, Direction.RIGHT);
-        }
-        else if(tank.setUp().equals(Action.FIRE)){
+        } else if (tank.setUp().equals(Action.FIRE)) {
             this.processFire(tank);
+        } else {
         }
-        else{}
+
+    }
+
+    public static void writeActionToFile(AbstractTank tank, String data) {
+        try (FileWriter fr = new FileWriter(tank.getFile(), true)) {
+            fr.write("||" + data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
