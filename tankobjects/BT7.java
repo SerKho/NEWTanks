@@ -23,12 +23,12 @@ public class BT7 extends AbstractTank {
     private Action previousAction = Action.MOVE_DOWN;
     private int speed = super.getSpeed()/2;
 
-   public BT7(BattleField bf, int x, int y, Direction direction){
-        super(bf, x, y, direction);
+   public BT7(BattleField bf, int x, int y, Direction direction, String tankName, File file){
+        super(bf, x, y, direction, tankName, file);
     }
 
-  public   BT7(BattleField bf){
-        super(bf);
+  public   BT7(BattleField bf, String tankName, File file){
+        super(bf, tankName, file);
     }
 
     @Override
