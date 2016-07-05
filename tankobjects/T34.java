@@ -16,11 +16,11 @@ import java.io.IOException;
 public class T34 extends AbstractTank {
     private String[] Image_Name = new String[]{"T34_UP.gif", "T34_DOWN.gif", "T34_LEFT.gif", "T34_RIGHT.gif"};
     private Image iT34;
-   public T34(BattleField bf){
-        super(bf);
+   public T34(BattleField bf, String tankName, File file){
+       super(bf, tankName, file);
     }
-   public T34(BattleField bf, int x, int y, Direction direction){
-        super(bf, x, y, direction);
+   public T34(BattleField bf, int x, int y, Direction direction, String tankName, File file){
+       super(bf, x, y, direction, tankName, file);
     }
 
     @Override
